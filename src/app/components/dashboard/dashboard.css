@@ -1,0 +1,72 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.navbar {
+  position: fixed;        
+  top: 0;                
+  left: 0;               
+  width: 100%;           
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #719ce1; /* Dark navy */
+  padding: 12px 20px;
+  color: white;
+  z-index: 1000;          
+}
+
+/* Left side heading */
+.nav-left h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+}
+
+/* Right side buttons */
+.nav-right .btn {
+  margin-left: 12px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Login button */
+.teacher-btn {
+  background-color: #026e7e;
+  color: white;
+}
+.teacher-btn:hover {
+  background-color: #023f48;
+}
+
+.student-btn {
+  background-color: #361098;
+  color: white;
+}
+.student-btn:hover {
+  background-color: #0a2663;
+}
+
+/* Signup button */
+.logout-btn {
+  background-color: #ef3030;
+  color: white;
+}
+.logout-btn:hover {
+  background-color: #a00b0b;
+}
+
+.body {
+  display: flex;
+  justify-content: center;   /* Horizontal center */
+  margin-top: 30vh;          /* Push below navbar */
+  font-size: 20px;
+  font-weight: 500;
+}

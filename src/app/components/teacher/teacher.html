@@ -1,0 +1,121 @@
+<nav class="navbar">
+  <div class="nav-left">
+    <h2>Teacher Student Management System</h2>
+  </div>
+  <div class="nav-right">
+    <button class="btn teacher-btn" routerLink="/teacher">Teacher</button>
+    <button class="btn student-btn" routerLink="/student">Student</button>
+    <button class="btn logout-btn" (click)="onLogOut()">Log Out</button>
+  </div>
+</nav>
+
+<div class="body">
+
+  <h1>Teacher Panel</h1>
+
+  <button class="btn add" (click)="toggleAddStudent()">Add New Teacher</button>
+
+  @if (showStudentTable) {
+    <div class="search-box">
+      <label for="Search">Search anyone? Type here</label>
+      <input type="search" [(ngModel)]="searchText" class="search-box" placeholder="Search Box">
+    </div>
+  }
+
+  @if (showAddStudent) {
+    <div class="form-wrapper"> 
+      <div class="form-container">
+        <h2>{{ isEditMode ? 'Edit Student Information' : 'Add Student Information' }}</h2>
+        <form>
+          <div class="form-group">
+            <label for="studentName">Full Name</label>
+            <input type="text" id="studentName" [(ngModel)]="students.name" name="name" placeholder="Enter teacher name" required>
+          </div>
+
+          <div class="form-group">
+            <label for="studentEmail">Email Address</label>
+            <input type="email" id="studentEmail" [(ngModel)]="students.email" name="email" placeholder="example@mail.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="studentDepartment">Department</label>
+            <input type="text" id="studentDepartment" [(ngModel)]="students.department" name="department" placeholder="Enter department" required>
+          </div>
+
+          <button type="submit" class="btn" (click)="onSubmit()">{{isEditMode ? 'Update Teacher' : 'Save Teacher' }}</button>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (showViewStudent) {
+    <div class="form-wrapper">
+      <div class="form-container">
+        <h2>Teacher Details</h2>
+        <form>
+          <div class="form-group">
+            <label for="viewName">Full Name</label>
+            <input type="text" id="viewName" [(ngModel)]="selectedStudent.name" name="name" readonly>
+          </div>
+
+          <div class="form-group">
+            <label for="viewEmail">Email Address</label>
+            <input type="email" id="viewEmail" [(ngModel)]="selectedStudent.email" name="email" readonly>
+          </div>
+
+          <div class="form-group">
+            <label for="viewDepartment">Department</label>
+            <input type="text" id="viewDepartment" [(ngModel)]="selectedStudent.department" name="department" readonly>
+          </div>
+
+          <button type="button" class="btn close-btn" (click)="closeViewStudent()">Close</button>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (showStudentTable) {
+    <div class="table-wrapper">
+      <table class="student-table">
+        <thead>
+          <tr>
+            <th>SL No</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (student of studentList | searchFilter: searchText; track student;) {
+          <tr>
+            <td>{{ $index + 1 }}</td>
+            <td>{{ student.name }}</td>
+            <td>{{ student.email }}</td>
+            <td>{{ student.department }}</td>
+            <td>
+              <button class="btn-action edit-btn" (click)="onEdit(student, $index)">Edit</button>
+              <button class="btn-action delete-btn" (click)="onDelete($index)">Delete</button>
+              <button class="btn-action view-btn" (click)="onView(student)">View</button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (showDeleteModal) {
+  <div class="modal-overlay" (click)="closeDeleteModal()">
+    <div class="modal-content">
+      <div class="modal-body">
+        <p>Are you sure you want to delete this teacher?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+        <button class="btn btn-danger" (click)="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+}

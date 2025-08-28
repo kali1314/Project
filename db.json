@@ -1,0 +1,37 @@
+{
+  "users": [
+    {
+      "id": "5163",
+      "emailId": "abc@gmail.com",
+      "password": "abc"
+    }
+  ],
+  "students": [
+    {
+      "id": "2689",
+      "name": "Pulok",
+      "email": "pulok@gmail.com",
+      "department": "CSTE"
+    },
+    {
+      "id": "7af4",
+      "name": "Tanvir",
+      "email": "tanvir106256@gmail.com",
+      "department": "ICE"
+    }
+  ],
+  "teachers": [
+    {
+      "id": "66de",
+      "name": "Ashik",
+      "email": "ashik@gmail.com",
+      "department": "ICE"
+    },
+    {
+      "id": "7259",
+      "name": "Rana",
+      "email": "rana@gmail.com",
+      "department": "CSTE"
+    }
+  ]
+}

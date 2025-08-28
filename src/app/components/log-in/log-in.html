@@ -1,0 +1,39 @@
+<body>
+  <div class="login-container">
+    <h1 class="login-title">Log In</h1>
+
+    <form>
+      <div class="form-group">
+        <label for="email" class="form-label">Email Id:</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          class="form-input"
+          [(ngModel)]="userLogIn.emailId"
+          placeholder="Enter your Email Id"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password:</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          class="form-input"
+          [(ngModel)]="userLogIn.password"
+          placeholder="Enter your Password"
+          required
+        />
+      </div>
+
+      <button type="submit" class="login-button" (click)="onLogIn()">Log In</button>
+    </form>
+
+    <div class="signup-link">Don't have an account? 
+      <a routerLink="/sign-up" style="text-decoration: none">Sign up </a>
+    </div>
+  </div>
+</body>
