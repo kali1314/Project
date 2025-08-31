@@ -84,6 +84,34 @@ export class Student implements OnInit {
     };
   }
 
+    // Sorting properties
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
+  setSort(column: string) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    this.sortStudents();
+  }
+
+  sortStudents() {
+    if (!this.sortColumn) return;
+
+    this.studentList.sort((a, b) => {
+      let valueA = a[this.sortColumn]?.toString().toLowerCase() || '';
+      let valueB = b[this.sortColumn]?.toString().toLowerCase() || '';
+
+      if (valueA < valueB) return this.sortDirection === 'asc' ? -1 : 1;
+      if (valueA > valueB) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+
+
   fetchStudents() {
     this.http.get<any[]>(`${this.apiUrl}?_page=${this.currentPage}&_limit=${this.pageSize}`, { observe: 'response' }).subscribe({
       next: (response) => {
@@ -91,6 +119,8 @@ export class Student implements OnInit {
         const totalItemsHeader = response.headers.get('X-Total-Count');
         this.totalItems = totalItemsHeader ? parseInt(totalItemsHeader, 10) : this.studentList.length;
         this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+
+        this.sortStudents(); // ✅ sorting applied after fetch
       },
       error: (err) => {
         console.log("Unable to fetch the data");
