@@ -87,15 +87,15 @@
           </tr>
         </thead>
         <tbody>
-          @for (student of studentList | searchFilter: searchText; track student;) {
+          @for (student of studentList | searchFilter: searchText | paginate: {itemsPerPage: 5, currentPage: page}; track student;) {
           <tr>
-            <td>{{ $index + 1 }}</td>
+            <td>{{ (page - 1) * 5 + $index + 1 }}</td>
             <td>{{ student.name }}</td>
             <td>{{ student.email }}</td>
             <td>{{ student.department }}</td>
             <td>
-              <button class="btn-action edit-btn" (click)="onEdit(student, $index)">Edit</button>
-              <button class="btn-action delete-btn" (click)="onDelete($index)">Delete</button>
+              <button class="btn-action edit-btn" (click)="onEdit(student, (page - 1) * 5 + $index)">Edit</button>
+              <button class="btn-action delete-btn" (click)="onDelete((page - 1) * 5 + $index)">Delete</button>
               <button class="btn-action view-btn" (click)="onView(student)">View</button>
             </td>
           </tr>
@@ -103,6 +103,12 @@
         </tbody>
       </table>
     </div>
+    <pagination-controls
+      (pageChange)="page = $event"
+      [autoHide]="true"
+      previousLabel="Prev"
+      nextLabel="Next">
+    </pagination-controls>
   }
 </div>
 

@@ -5,10 +5,11 @@ import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
 import { SearchFilterPipe } from './search-filter-pipe';
+import { NgxPaginationModule } from 'ngx-pagination';
 
 @Component({
   selector: 'app-student',
-  imports: [RouterLink, FormsModule, CommonModule, SearchFilterPipe],
+  imports: [RouterLink, FormsModule, CommonModule, SearchFilterPipe, NgxPaginationModule],
   templateUrl: './student.html',
   styleUrl: './student.css'
 })
@@ -19,6 +20,8 @@ export class Student implements OnInit {
   showViewStudent = false;
   isEditMode = false;
   editIndex = -1;
+
+  page: number = 1;
 
   searchText: any;
 
