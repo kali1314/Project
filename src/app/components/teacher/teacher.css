@@ -92,8 +92,6 @@
 }
 
 .body .btn {
-  width: 250px; 
-  padding: 12px 20px;
   margin-bottom: 15px;
   border: none;
   border-radius: 6px;
@@ -116,6 +114,10 @@
 
 .body .view:hover {
   background-color: #0056b3;
+}
+
+.search-box {
+  max-width: 900px;
 }
 
 .form-wrapper {
@@ -200,12 +202,12 @@ input[readonly]:focus {
   box-shadow: none;
 }
 
-
 .table-wrapper {
   margin-top: 30px;
   width: 100%;               
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }
 
 .student-table {
@@ -395,4 +397,49 @@ input.ng-invalid.ng-touched {
 
 .btn-danger:hover {
   background-color: #c82333;
+}
+
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 4px;
+}
+
+.pagination-btn {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 400px;
+  font-size: 1px;
+  cursor: pointer;
+  color: white;
+  background-color: #6c757d; /* Matches btn-secondary */
+  transition: background-color 0.3s ease;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #5a6268;
+}
+
+.pagination-btn:disabled {
+  background-color: #e0e0e0;
+  cursor: not-allowed;
+  color: #6c757d;
+}
+
+.pagination-btn.active {
+  background-color: #007bff; /* Matches table header */
+  color: white;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #444;
+  margin-left: 12px;
 }

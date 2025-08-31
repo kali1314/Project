@@ -30,6 +30,12 @@ export class Teacher implements OnInit{
   studentToDelete: any = null;
   deleteIndex = -1;
 
+  // Pagination properties
+  currentPage = 1;
+  pageSize = 5;
+  totalItems = 0;
+  totalPages = 1;
+
   students: any = {
     name: '',
     email: '',
@@ -82,12 +88,47 @@ export class Teacher implements OnInit{
   }
 
   fetchStudents() {
-    this.http.get<any[]>(this.apiUrl).subscribe({next: (data) => {
-      this.studentList = data;
-    }, error: (err) => {
-      console.log("Unable to fetch the data");
-      this.toastr.error("Something went wrong. Please try again later.", "Error");
-    }})
+    this.http.get<any[]>(`${this.apiUrl}?_page=${this.currentPage}&_limit=${this.pageSize}`, { observe: 'response' }).subscribe({
+      next: (response) => {
+        this.studentList = response.body || [];
+        const totalItemsHeader = response.headers.get('X-Total-Count');
+        this.totalItems = totalItemsHeader ? parseInt(totalItemsHeader, 10) : this.studentList.length;
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+      },
+      error: (err) => {
+        console.log("Unable to fetch the data");
+        this.toastr.error("Something went wrong. Please try again later.", "Error");
+      }
+    });
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+      this.currentPage = page;
+      this.fetchStudents();
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.fetchStudents();
+    }
+  }
+
+  previousPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.fetchStudents();
+    }
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    for (let i = 1; i <= this.totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   onSubmit() {

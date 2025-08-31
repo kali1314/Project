@@ -5,11 +5,10 @@ import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
 import { SearchFilterPipe } from './search-filter-pipe';
-import { NgxPaginationModule } from 'ngx-pagination';
 
 @Component({
   selector: 'app-student',
-  imports: [RouterLink, FormsModule, CommonModule, SearchFilterPipe, NgxPaginationModule],
+  imports: [RouterLink, FormsModule, CommonModule, SearchFilterPipe],
   templateUrl: './student.html',
   styleUrl: './student.css'
 })
@@ -21,14 +20,18 @@ export class Student implements OnInit {
   isEditMode = false;
   editIndex = -1;
 
-  page: number = 1;
-
   searchText: any;
 
   // Modal properties
   showDeleteModal = false;
   studentToDelete: any = null;
   deleteIndex = -1;
+
+  // Pagination properties
+  currentPage = 1;
+  pageSize = 5;
+  totalItems = 0;
+  totalPages = 1;
 
   students: any = {
     name: '',
@@ -40,14 +43,6 @@ export class Student implements OnInit {
     name: '',
     email: '',
     department: ''
-  }
-
-  resetForm() {
-    this.students = {
-      name: '',
-      email: '',
-      department: ''
-    };
   }
 
   studentList: any[] = [];
@@ -81,13 +76,56 @@ export class Student implements OnInit {
     }
   }
 
+  resetForm() {
+    this.students = {
+      name: '',
+      email: '',
+      department: ''
+    };
+  }
+
   fetchStudents() {
-    this.http.get<any[]>(this.apiUrl).subscribe({next: (data) => {
-      this.studentList = data;
-    }, error: (err) => {
-      console.log("Unable to fetch the data");
-      this.toastr.error("Something went wrong. Please try again later.", "Error");
-    }})
+    this.http.get<any[]>(`${this.apiUrl}?_page=${this.currentPage}&_limit=${this.pageSize}`, { observe: 'response' }).subscribe({
+      next: (response) => {
+        this.studentList = response.body || [];
+        const totalItemsHeader = response.headers.get('X-Total-Count');
+        this.totalItems = totalItemsHeader ? parseInt(totalItemsHeader, 10) : this.studentList.length;
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+      },
+      error: (err) => {
+        console.log("Unable to fetch the data");
+        this.toastr.error("Something went wrong. Please try again later.", "Error");
+      }
+    });
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages && page !== this.currentPage) {
+      this.currentPage = page;
+      this.fetchStudents();
+    }
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.fetchStudents();
+    }
+  }
+
+  previousPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.fetchStudents();
+    }
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    for (let i = 1; i <= this.totalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
   }
 
   onSubmit() {
@@ -97,66 +135,73 @@ export class Student implements OnInit {
     }
     if (this.isEditMode && this.editIndex >= 0) {
       const studentId = this.studentList[this.editIndex].id;
-      this.http.put(`${this.apiUrl}/${studentId}`, this.students).subscribe({next: () => {
-        this.toastr.success("Student Updated Successfully.", "Success");
-        this.fetchStudents();
-        this.isEditMode = false;
-        this.editIndex = -1;
-        this.showAddStudent = false;
-        this.showStudentTable = true;
-        this.resetForm();
-      }, error: (err) => {
-        console.log("Unable to update the student");
-        this.toastr.error("Something went wrong. Please try again later.", "Error");
-      }})
-    } 
-    else {
-      this.http.post(this.apiUrl, this.students).subscribe({next: (data) => {
-        this.toastr.success("Added new student successfully!!!", "Success");
-        this.fetchStudents();
-        this.showAddStudent = false;
-        this.showStudentTable = true;
-        this.resetForm();
-      }, error: (err) => {
-        console.log("Unable to add new student");
-        this.toastr.error("Something went wrong. Please try again later.", "Error");
-      }})
+      this.http.put(`${this.apiUrl}/${studentId}`, this.students).subscribe({
+        next: () => {
+          this.toastr.success("Student Updated Successfully.", "Success");
+          this.fetchStudents();
+          this.isEditMode = false;
+          this.editIndex = -1;
+          this.showAddStudent = false;
+          this.showStudentTable = true;
+          this.resetForm();
+        },
+        error: (err) => {
+          console.log("Unable to update the student");
+          this.toastr.error("Something went wrong. Please try again later.", "Error");
+        }
+      });
+    } else {
+      this.http.post(this.apiUrl, this.students).subscribe({
+        next: (data) => {
+          this.toastr.success("Added new student successfully!!!", "Success");
+          this.fetchStudents();
+          this.showAddStudent = false;
+          this.showStudentTable = true;
+          this.resetForm();
+        },
+        error: (err) => {
+          console.log("Unable to add new student");
+          this.toastr.error("Something went wrong. Please try again later.", "Error");
+        }
+      });
     }   
   }
   
   onEdit(student: any, index: number) {
     this.isEditMode = true;
     this.editIndex = index;
-
-    this.students = { ...student};
-
+    this.students = { ...student };
     this.showAddStudent = true;
     this.showStudentTable = false;
     this.showViewStudent = false;
   }
 
-  // Updated delete method - opens modal instead of confirm
   onDelete(index: number) {
     this.deleteIndex = index;
     this.studentToDelete = this.studentList[index];
     this.showDeleteModal = true;
   }
 
-  // Confirm delete from modal
   confirmDelete() {
     const studentId = this.studentList[this.deleteIndex].id;
-    this.http.delete(`${this.apiUrl}/${studentId}`).subscribe({next: () => {
-      this.toastr.success("Student deleted successfully!!!", "Success");
-      this.fetchStudents();
-      this.closeDeleteModal();
-    }, error: (err) => {
-      console.log("Unable to delete the data");
-      this.toastr.error("Something went wrong. Please try again later.", "Error");
-      this.closeDeleteModal();
-    }})
+    this.http.delete(`${this.apiUrl}/${studentId}`).subscribe({
+      next: () => {
+        this.toastr.success("Student deleted successfully!!!", "Success");
+        // Adjust current page if necessary
+        if (this.studentList.length === 1 && this.currentPage > 1) {
+          this.currentPage--;
+        }
+        this.fetchStudents();
+        this.closeDeleteModal();
+      },
+      error: (err) => {
+        console.log("Unable to delete the data");
+        this.toastr.error("Something went wrong. Please try again later.", "Error");
+        this.closeDeleteModal();
+      }
+    });
   }
 
-  // Close delete modal
   closeDeleteModal() {
     this.showDeleteModal = false;
     this.studentToDelete = null;
@@ -164,7 +209,7 @@ export class Student implements OnInit {
   }
 
   onView(student: any) {
-    this.selectedStudent = { ...student};
+    this.selectedStudent = { ...student };
     this.showViewStudent = true;
     this.showStudentTable = false;
     this.showAddStudent = false;    

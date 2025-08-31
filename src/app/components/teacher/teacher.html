@@ -87,28 +87,32 @@
           </tr>
         </thead>
         <tbody>
-          @for (student of studentList | searchFilter: searchText | paginate: {itemsPerPage: 5, currentPage: page}; track student;) {
+          @for (student of studentList | searchFilter: searchText; track student;) {
           <tr>
-            <td>{{ (page - 1) * 5 + $index + 1 }}</td>
+            <td>{{ $index + 1 }}</td>
             <td>{{ student.name }}</td>
             <td>{{ student.email }}</td>
             <td>{{ student.department }}</td>
             <td>
-              <button class="btn-action edit-btn" (click)="onEdit(student, (page - 1) * 5 + $index)">Edit</button>
-              <button class="btn-action delete-btn" (click)="onDelete((page - 1) * 5 + $index)">Delete</button>
+              <button class="btn-action edit-btn" (click)="onEdit(student, $index)">Edit</button>
+              <button class="btn-action delete-btn" (click)="onDelete($index)">Delete</button>
               <button class="btn-action view-btn" (click)="onView(student)">View</button>
             </td>
           </tr>
           }
         </tbody>
       </table>
+
+      <div class="pagination">
+        <button class="btn pagination-btn" (click)="previousPage()" [disabled]="currentPage === 1">Previous</button>
+        @for (page of getPageNumbers(); track page) {
+          <button class="btn pagination-btn" [class.active]="page === currentPage" (click)="goToPage(page)">{{ page }}</button>
+        }
+        <button class="btn pagination-btn" (click)="nextPage()" [disabled]="currentPage === totalPages">Next</button>
+        <!-- <span class="pagination-info">Page {{ currentPage }} of {{ totalPages }}</span> -->
+      </div>
+      
     </div>
-    <pagination-controls
-      (pageChange)="page = $event"
-      [autoHide]="true"
-      previousLabel="Prev"
-      nextLabel="Next">
-    </pagination-controls>
   }
 </div>
 
