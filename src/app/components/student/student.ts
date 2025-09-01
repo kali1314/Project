@@ -4,13 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
-import { SearchFilterPipe } from './search-filter-pipe';
 
 @Component({
   selector: 'app-student',
-  imports: [RouterLink, FormsModule, CommonModule, SearchFilterPipe],
+  imports: [RouterLink, FormsModule, CommonModule],
   templateUrl: './student.html',
-  styleUrl: './student.css'
+  styleUrls: ['./student.css']  // ✅ fixed typo: was 'styleUrl', now correct 'styleUrls'
 })
 export class Student implements OnInit {
 
@@ -20,7 +19,7 @@ export class Student implements OnInit {
   isEditMode = false;
   editIndex = -1;
 
-  searchText: any;
+  searchText: string = '';
 
   // Modal properties
   showDeleteModal = false;
@@ -33,19 +32,13 @@ export class Student implements OnInit {
   totalItems = 0;
   totalPages = 1;
 
-  students: any = {
-    name: '',
-    email: '',
-    department: ''
-  }
-
-  selectedStudent: any = {
-    name: '',
-    email: '',
-    department: ''
-  }
-
+  students: any = { name: '', email: '', department: '' };
+  selectedStudent: any = { name: '', email: '', department: '' };
   studentList: any[] = [];
+
+  // Sorting
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   router = inject(Router);
   http = inject(HttpClient);
@@ -53,12 +46,12 @@ export class Student implements OnInit {
 
   apiUrl: string = "https://my-json-api-i00y.onrender.com/students";
 
-  onLogOut() {
-    this.router.navigate(['/']);
-  }
-
   ngOnInit(): void {
     this.fetchStudents();
+  }
+
+  onLogOut() {
+    this.router.navigate(['/']);
   }
 
   toggleAddStudent() {
@@ -69,25 +62,17 @@ export class Student implements OnInit {
       this.isEditMode = false;
       this.editIndex = -1;
       this.resetForm();
-    }
-    else {
+    } else {
       this.showAddStudent = false;
-      this.showStudentTable = true;  
+      this.showStudentTable = true;
     }
   }
 
   resetForm() {
-    this.students = {
-      name: '',
-      email: '',
-      department: ''
-    };
+    this.students = { name: '', email: '', department: '' };
   }
 
-    // Sorting properties
-  sortColumn: string = '';
-  sortDirection: 'asc' | 'desc' = 'asc';
-
+  // ✅ Server-side sorting
   setSort(column: string) {
     if (this.sortColumn === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -95,32 +80,33 @@ export class Student implements OnInit {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
-    this.sortStudents();
+    this.fetchStudents(); // ✅ fetch sorted data from server
   }
-
-  sortStudents() {
-    if (!this.sortColumn) return;
-
-    this.studentList.sort((a, b) => {
-      let valueA = a[this.sortColumn]?.toString().toLowerCase() || '';
-      let valueB = b[this.sortColumn]?.toString().toLowerCase() || '';
-
-      if (valueA < valueB) return this.sortDirection === 'asc' ? -1 : 1;
-      if (valueA > valueB) return this.sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }
-
 
   fetchStudents() {
-    this.http.get<any[]>(`${this.apiUrl}?_page=${this.currentPage}&_limit=${this.pageSize}`, { observe: 'response' }).subscribe({
+    // Build server query params
+    const params: any = {
+      _page: this.currentPage,
+      _limit: this.pageSize,
+    };
+
+    // ✅ Server-side sorting
+    if (this.sortColumn) {
+      params._sort = this.sortColumn;
+      params._order = this.sortDirection;
+    }
+
+    // ✅ Server-side filtering
+    if (this.searchText && this.searchText.trim() !== '') {
+      params.q = this.searchText.trim(); // JSON Server supports q= for full-text search
+    }
+
+    this.http.get<any[]>(this.apiUrl, { observe: 'response', params }).subscribe({
       next: (response) => {
         this.studentList = response.body || [];
         const totalItemsHeader = response.headers.get('X-Total-Count');
         this.totalItems = totalItemsHeader ? parseInt(totalItemsHeader, 10) : this.studentList.length;
         this.totalPages = Math.ceil(this.totalItems / this.pageSize);
-
-        this.sortStudents(); // ✅ sorting applied after fetch
       },
       error: (err) => {
         console.log("Unable to fetch the data");
@@ -151,11 +137,7 @@ export class Student implements OnInit {
   }
 
   getPageNumbers(): number[] {
-    const pages: number[] = [];
-    for (let i = 1; i <= this.totalPages; i++) {
-      pages.push(i);
-    }
-    return pages;
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
   onSubmit() {
@@ -163,6 +145,7 @@ export class Student implements OnInit {
       this.toastr.warning("Please fill all fields before submitting.", "Warning");
       return;
     }
+
     if (this.isEditMode && this.editIndex >= 0) {
       const studentId = this.studentList[this.editIndex].id;
       this.http.put(`${this.apiUrl}/${studentId}`, this.students).subscribe({
@@ -175,28 +158,26 @@ export class Student implements OnInit {
           this.showStudentTable = true;
           this.resetForm();
         },
-        error: (err) => {
-          console.log("Unable to update the student");
+        error: () => {
           this.toastr.error("Something went wrong. Please try again later.", "Error");
         }
       });
     } else {
       this.http.post(this.apiUrl, this.students).subscribe({
-        next: (data) => {
+        next: () => {
           this.toastr.success("Added new student successfully!!!", "Success");
           this.fetchStudents();
           this.showAddStudent = false;
           this.showStudentTable = true;
           this.resetForm();
         },
-        error: (err) => {
-          console.log("Unable to add new student");
+        error: () => {
           this.toastr.error("Something went wrong. Please try again later.", "Error");
         }
       });
-    }   
+    }
   }
-  
+
   onEdit(student: any, index: number) {
     this.isEditMode = true;
     this.editIndex = index;
@@ -217,15 +198,11 @@ export class Student implements OnInit {
     this.http.delete(`${this.apiUrl}/${studentId}`).subscribe({
       next: () => {
         this.toastr.success("Student deleted successfully!!!", "Success");
-        // Adjust current page if necessary
-        if (this.studentList.length === 1 && this.currentPage > 1) {
-          this.currentPage--;
-        }
+        if (this.studentList.length === 1 && this.currentPage > 1) this.currentPage--;
         this.fetchStudents();
         this.closeDeleteModal();
       },
-      error: (err) => {
-        console.log("Unable to delete the data");
+      error: () => {
         this.toastr.error("Something went wrong. Please try again later.", "Error");
         this.closeDeleteModal();
       }
