@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
   selector: 'app-student',
   imports: [RouterLink, FormsModule, CommonModule],
   templateUrl: './student.html',
-  styleUrls: ['./student.css']  // ✅ fixed typo: was 'styleUrl', now correct 'styleUrls'
+  styleUrls: ['./student.css'] 
 })
 export class Student implements OnInit {
 
@@ -72,7 +72,7 @@ export class Student implements OnInit {
     this.students = { name: '', email: '', department: '' };
   }
 
-  // ✅ Server-side sorting
+  // Server-side sorting
   setSort(column: string) {
     if (this.sortColumn === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -80,7 +80,7 @@ export class Student implements OnInit {
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
-    this.fetchStudents(); // ✅ fetch sorted data from server
+    this.fetchStudents(); 
   }
 
   fetchStudents() {
@@ -90,15 +90,15 @@ export class Student implements OnInit {
       _limit: this.pageSize,
     };
 
-    // ✅ Server-side sorting
+    // Server-side sorting
     if (this.sortColumn) {
       params._sort = this.sortColumn;
       params._order = this.sortDirection;
     }
 
-    // ✅ Server-side filtering
+    // Server-side filtering
     if (this.searchText && this.searchText.trim() !== '') {
-      params.q = this.searchText.trim(); // JSON Server supports q= for full-text search
+      params.q = this.searchText.trim(); 
     }
 
     this.http.get<any[]>(this.apiUrl, { observe: 'response', params }).subscribe({
