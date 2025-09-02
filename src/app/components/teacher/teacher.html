@@ -15,25 +15,31 @@
   <button class="btn add" (click)="toggleAddStudent()">Add New Teacher</button>
 
   @if (showStudentTable) {
-  <div class="search-box">
-    <label for="Search">Search anyone? Type here</label>
-    <input type="search" [(ngModel)]="searchText" class="search-box" placeholder="Search Box" />
-  </div>
-  } @if (showAddStudent) {
+    <div class="search-box">
+      <label for="Search">Search anyone? Type here</label>
+      <input
+        type="search"
+        [(ngModel)]="searchText"
+        class="search-box"
+        placeholder="Search Box"
+        (input)="currentPage=1; fetchStudents()"/>
+    </div>
+  } 
+  @if (showAddStudent) {
   <div class="form-wrapper">
     <div class="form-container">
-      <h2>{{ isEditMode ? 'Edit Student Information' : 'Add Student Information' }}</h2>
-      <form>
+      <h2>{{ isEditMode ? 'Edit Teacher Information' : 'Add Teacher Information' }}</h2>
+      <form [formGroup]="studentForm" (ngSubmit)="onSubmit()">
         <div class="form-group">
           <label for="studentName">Full Name</label>
           <input
             type="text"
             id="studentName"
-            [(ngModel)]="students.name"
+            formControlName="name"
             name="name"
-            placeholder="Enter teacher name"
-            required
+            placeholder="Enter student name"
           />
+          <small *ngIf="studentForm.get('name')?.invalid && studentForm.get('name')?.touched" style="color: red">Name is required</small>
         </div>
 
         <div class="form-group">
@@ -41,11 +47,15 @@
           <input
             type="email"
             id="studentEmail"
-            [(ngModel)]="students.email"
+            formControlName="email"
             name="email"
             placeholder="example@mail.com"
-            required
           />
+
+          <small *ngIf="studentForm.get('email')?.invalid && studentForm.get('email')?.touched" style="color: red">
+            Email is required & must be valid
+          </small>
+
         </div>
 
         <div class="form-group">
@@ -53,23 +63,31 @@
           <input
             type="text"
             id="studentDepartment"
-            [(ngModel)]="students.department"
+            formControlName="department"
             name="department"
             placeholder="Enter department"
-            required
           />
+
+          <small *ngIf="studentForm.get('department')?.invalid && studentForm.get('department')?.touched" style="color: red">
+            Department is required
+          </small>
+
         </div>
 
-        <button type="submit" class="btn" (click)="onSubmit()">
+        <button type="submit" class="btn" [disabled]="studentForm.invalid">
           {{ isEditMode ? 'Update Teacher' : 'Save Teacher' }}
         </button>
+
       </form>
+
     </div>
   </div>
-  } @if (showViewStudent) {
+  } 
+  
+  @if (showViewStudent) {
   <div class="form-wrapper">
     <div class="form-container">
-      <h2>Teacher Details</h2>
+      <h2>Student Details</h2>
       <form>
         <div class="form-group">
           <label for="viewName">Full Name</label>
@@ -132,16 +150,17 @@
           <th>Actions</th>
         </tr>
       </thead>
+
       <tbody>
-        @for (student of studentList | searchFilter: searchText; track student;) {
+        @for (student of studentList; track student; let i = $index) {
         <tr>
-          <td>{{ $index + 1 }}</td>
+          <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
           <td>{{ student.name }}</td>
           <td>{{ student.email }}</td>
           <td>{{ student.department }}</td>
           <td>
-            <button class="btn-action edit-btn" (click)="onEdit(student, $index)">Edit</button>
-            <button class="btn-action delete-btn" (click)="onDelete($index)">Delete</button>
+            <button class="btn-action edit-btn" (click)="onEdit(student, i)">Edit</button>
+            <button class="btn-action delete-btn" (click)="onDelete(i)">Delete</button>
             <button class="btn-action view-btn" (click)="onView(student)">View</button>
           </td>
         </tr>
@@ -149,6 +168,7 @@
       </tbody>
     </table>
 
+    <!-- Pagination Controls -->
     <div class="pagination">
       <button class="btn pagination-btn" (click)="previousPage()" [disabled]="currentPage === 1">
         Previous
@@ -169,7 +189,6 @@
       >
         Next
       </button>
-      <!-- <span class="pagination-info">Page {{ currentPage }} of {{ totalPages }}</span> -->
     </div>
   </div>
   }
@@ -179,7 +198,7 @@
 <div class="modal-overlay" (click)="closeDeleteModal()">
   <div class="modal-content">
     <div class="modal-body">
-      <p>Are you sure you want to delete this teacher?</p>
+      <p>Are you sure you want to delete this student?</p>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" (click)="closeDeleteModal()">Cancel</button>

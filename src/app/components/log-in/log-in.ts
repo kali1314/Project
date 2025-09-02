@@ -1,13 +1,14 @@
+import { NgIf } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import {  FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-log-in',
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, ReactiveFormsModule, NgIf],
   templateUrl: './log-in.html',
   styleUrl: './log-in.css'
 })
@@ -17,10 +18,10 @@ export class LogIn {
   router = inject(Router);
   toastr = inject(ToastrService);
 
-  userLogIn: any = {
-    emailId: '',
-    password: ''
-  }
+  logInForm = new FormGroup({
+    emailId: new FormControl('', [Validators.required, Validators.email]),
+    password: new FormControl('', Validators.required)
+  });
 
   apiUrl: string = "https://my-json-api-i00y.onrender.com/users";
 
@@ -31,13 +32,13 @@ export class LogIn {
         this.router.navigate(['/sign-up']);
         return;
       }
-      const isUserFoundEmail = users.find((m: any) => m.emailId === this.userLogIn.emailId);
+      const isUserFoundEmail = users.find((m: any) => m.emailId === this.logInForm.value.emailId);
       if (!isUserFoundEmail) {
         this.toastr.warning("No user found registered with this email", "warning");
         this.router.navigate(['/sign-up']);
         return;
       } 
-      const isUserFoundPassword= users.find((m: any) => m.password === this.userLogIn.password);
+      const isUserFoundPassword= users.find((m: any) => m.password === this.logInForm.value.password);
       if (!isUserFoundPassword) {
         this.toastr.warning("Password is incorrect", "warning");
         return;

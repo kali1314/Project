@@ -2,7 +2,7 @@
   <div class="login-container">
     <h1 class="login-title">Log In</h1>
 
-    <form>
+    <form [formGroup]="logInForm" (ngSubmit)="onLogIn()">
       <div class="form-group">
         <label for="email" class="form-label">Email Id:</label>
         <input
@@ -10,10 +10,14 @@
           id="email"
           name="email"
           class="form-input"
-          [(ngModel)]="userLogIn.emailId"
+          formControlName="emailId"
           placeholder="Enter your Email Id"
-          required
         />
+      </div>
+
+      <div *ngIf="logInForm.get('emailId')?.invalid && logInForm.get('emailId')?.touched">
+        <small *ngIf="logInForm.get('emailId')?.errors?.['required']" style="color: red">Email is required</small>
+        <small *ngIf="logInForm.get('emailId')?.errors?.['email']" style="color: red">Invalid email format</small>
       </div>
 
       <div class="form-group">
@@ -23,13 +27,16 @@
           id="password"
           name="password"
           class="form-input"
-          [(ngModel)]="userLogIn.password"
+          formControlName="password"
           placeholder="Enter your Password"
-          required
         />
       </div>
 
-      <button type="submit" class="login-button" (click)="onLogIn()">Log In</button>
+      <div *ngIf="logInForm.get('password')?.invalid && logInForm.get('password')?.touched">
+        <small style="color: red">Password is required</small>
+      </div>
+
+      <button type="submit" class="login-button" [disabled]="logInForm.invalid">Log In</button>
     </form>
 
     <div class="signup-link">Don't have an account? 

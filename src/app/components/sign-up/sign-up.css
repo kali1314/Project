@@ -70,6 +70,14 @@ body {
   background: #16a34a;
 }
 
+.login-button:disabled {
+  cursor: not-allowed;
+}
+
+.login-button:disabled:hover {
+  background-color: #22c55e;
+}
+
 .signup-link {
   text-align: center;
   margin-top: 20px;

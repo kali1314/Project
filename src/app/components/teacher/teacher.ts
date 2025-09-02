@@ -1,15 +1,13 @@
+import { NgIf } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { SearchFilterPipe } from './search-filter-pipe';
-import { CommonModule } from '@angular/common';
-import { NgxPaginationModule } from 'ngx-pagination';
 
 @Component({
   selector: 'app-teacher',
-  imports: [RouterLink, FormsModule, CommonModule ,SearchFilterPipe, NgxPaginationModule],
+  imports: [RouterLink, FormsModule, ReactiveFormsModule, NgIf],
   templateUrl: './teacher.html',
   styleUrl: './teacher.css'
 })
@@ -21,9 +19,7 @@ export class Teacher implements OnInit{
   isEditMode = false;
   editIndex = -1;
 
-  page: number = 1;
-
-  searchText: any;
+  searchText: string = '';
 
   // Modal properties
   showDeleteModal = false;
@@ -36,27 +32,13 @@ export class Teacher implements OnInit{
   totalItems = 0;
   totalPages = 1;
 
-  students: any = {
-    name: '',
-    email: '',
-    department: ''
-  }
-
-  selectedStudent: any = {
-    name: '',
-    email: '',
-    department: ''
-  }
-
-  resetForm() {
-    this.students = {
-      name: '',
-      email: '',
-      department: ''
-    };
-  }
-
+  studentForm: FormGroup;
+  selectedStudent: any = { name: '', email: '', department: '' };
   studentList: any[] = [];
+
+  // Sorting
+  sortColumn: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
 
   router = inject(Router);
   http = inject(HttpClient);
@@ -64,12 +46,20 @@ export class Teacher implements OnInit{
 
   apiUrl: string = "https://my-json-api-i00y.onrender.com/teachers";
 
-  onLogOut() {
-    this.router.navigate(['/']);
-  }
-
   ngOnInit(): void {
     this.fetchStudents();
+  }
+
+  constructor() {
+    this.studentForm = new FormGroup({
+      name: new FormControl('', Validators.required),
+      email: new FormControl('', [Validators.required, Validators.email]),
+      department: new FormControl('', Validators.required)
+    });
+  }
+
+  onLogOut() {
+    this.router.navigate(['/']);
   }
 
   toggleAddStudent() {
@@ -80,52 +70,51 @@ export class Teacher implements OnInit{
       this.isEditMode = false;
       this.editIndex = -1;
       this.resetForm();
-    }
-    else {
+    } else {
       this.showAddStudent = false;
-      this.showStudentTable = true;  
+      this.showStudentTable = true;
     }
   }
 
-    // Sorting properties
-  sortColumn: string = '';
-  sortDirection: 'asc' | 'desc' = 'asc';
+  resetForm() {
+    this.studentForm.reset();
+  }
 
+  // Server-side sorting
   setSort(column: string) {
     if (this.sortColumn === column) {
-      // একই কলাম হলে দিক পরিবর্তন করো
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
     } else {
-      // নতুন কলাম হলে ascending থেকে শুরু
       this.sortColumn = column;
       this.sortDirection = 'asc';
     }
-    this.sortStudents();
+    this.fetchStudents(); 
   }
-
-  sortStudents() {
-    if (!this.sortColumn) return;
-
-    this.studentList.sort((a, b) => {
-      let valueA = a[this.sortColumn]?.toString().toLowerCase() || '';
-      let valueB = b[this.sortColumn]?.toString().toLowerCase() || '';
-
-      if (valueA < valueB) return this.sortDirection === 'asc' ? -1 : 1;
-      if (valueA > valueB) return this.sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
-  }
-
 
   fetchStudents() {
-    this.http.get<any[]>(`${this.apiUrl}?_page=${this.currentPage}&_limit=${this.pageSize}`, { observe: 'response' }).subscribe({
+    // Build server query params
+    const params: any = {
+      _page: this.currentPage,
+      _limit: this.pageSize,
+    };
+
+    // Server-side sorting
+    if (this.sortColumn) {
+      params._sort = this.sortColumn;
+      params._order = this.sortDirection;
+    }
+
+    // Server-side filtering
+    if (this.searchText && this.searchText.trim() !== '') {
+      params.q = this.searchText.trim(); 
+    }
+
+    this.http.get<any[]>(this.apiUrl, { observe: 'response', params }).subscribe({
       next: (response) => {
         this.studentList = response.body || [];
         const totalItemsHeader = response.headers.get('X-Total-Count');
         this.totalItems = totalItemsHeader ? parseInt(totalItemsHeader, 10) : this.studentList.length;
         this.totalPages = Math.ceil(this.totalItems / this.pageSize);
-
-        this.sortStudents(); 
       },
       error: (err) => {
         console.log("Unable to fetch the data");
@@ -156,80 +145,84 @@ export class Teacher implements OnInit{
   }
 
   getPageNumbers(): number[] {
-    const pages: number[] = [];
-    for (let i = 1; i <= this.totalPages; i++) {
-      pages.push(i);
-    }
-    return pages;
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
   onSubmit() {
-    if (!this.students.name || !this.students.email || !this.students.department) {
+    if (this.studentForm.invalid) {
       this.toastr.warning("Please fill all fields before submitting.", "Warning");
       return;
     }
+
     if (this.isEditMode && this.editIndex >= 0) {
       const studentId = this.studentList[this.editIndex].id;
-      this.http.put(`${this.apiUrl}/${studentId}`, this.students).subscribe({next: () => {
-        this.toastr.success("Teacher Updated Successfully.", "Success");
-        this.fetchStudents();
-        this.isEditMode = false;
-        this.editIndex = -1;
-        this.showAddStudent = false;
-        this.showStudentTable = true;
-        this.resetForm();
-      }, error: (err) => {
-        console.log("Unable to update the student");
-        this.toastr.error("Something went wrong. Please try again later.", "Error");
-      }})
-    } 
-    else {
-      this.http.post(this.apiUrl, this.students).subscribe({next: (data) => {
-        this.toastr.success("Added new teacher successfully!!!", "Success");
-        this.fetchStudents();
-        this.showAddStudent = false;
-        this.showStudentTable = true;
-        this.resetForm();
-      }, error: (err) => {
-        console.log("Unable to add new student");
-        this.toastr.error("Something went wrong. Please try again later.", "Error");
-      }})
-    }   
+      this.http.put(`${this.apiUrl}/${studentId}`, this.studentForm.value).subscribe({
+        next: () => {
+          this.toastr.success("Student Updated Successfully.", "Success");
+          this.fetchStudents();
+          this.isEditMode = false;
+          this.editIndex = -1;
+          this.showAddStudent = false;
+          this.showStudentTable = true;
+          this.resetForm();
+        },
+        error: () => {
+          this.toastr.error("Something went wrong. Please try again later.", "Error");
+        }
+      });
+    } else {
+      this.http.post(this.apiUrl, this.studentForm.value).subscribe({
+        next: () => {
+          this.toastr.success("Added new student successfully!!!", "Success");
+          this.fetchStudents();
+          this.showAddStudent = false;
+          this.showStudentTable = true;
+          this.resetForm();
+        },
+        error: () => {
+          this.toastr.error("Something went wrong. Please try again later.", "Error");
+        }
+      });
+    }
   }
-  
+
   onEdit(student: any, index: number) {
     this.isEditMode = true;
     this.editIndex = index;
 
-    this.students = { ...student};
+    this.studentForm.patchValue({
+      name: student.name,
+      email: student.email,
+      department: student.department
+    });
 
     this.showAddStudent = true;
     this.showStudentTable = false;
     this.showViewStudent = false;
   }
 
-  // Updated delete method - opens modal instead of confirm
   onDelete(index: number) {
     this.deleteIndex = index;
     this.studentToDelete = this.studentList[index];
     this.showDeleteModal = true;
   }
 
-  // Confirm delete from modal
   confirmDelete() {
     const studentId = this.studentList[this.deleteIndex].id;
-    this.http.delete(`${this.apiUrl}/${studentId}`).subscribe({next: () => {
-      this.toastr.success("Student deleted successfully!!!", "Success");
-      this.fetchStudents();
-      this.closeDeleteModal();
-    }, error: (err) => {
-      console.log("Unable to delete the data");
-      this.toastr.error("Something went wrong. Please try again later.", "Error");
-      this.closeDeleteModal();
-    }})
+    this.http.delete(`${this.apiUrl}/${studentId}`).subscribe({
+      next: () => {
+        this.toastr.success("Student deleted successfully!!!", "Success");
+        if (this.studentList.length === 1 && this.currentPage > 1) this.currentPage--;
+        this.fetchStudents();
+        this.closeDeleteModal();
+      },
+      error: () => {
+        this.toastr.error("Something went wrong. Please try again later.", "Error");
+        this.closeDeleteModal();
+      }
+    });
   }
 
-  // Close delete modal
   closeDeleteModal() {
     this.showDeleteModal = false;
     this.studentToDelete = null;
@@ -237,15 +230,15 @@ export class Teacher implements OnInit{
   }
 
   onView(student: any) {
-    this.selectedStudent = { ...student};
+    this.selectedStudent = { ...student };
     this.showViewStudent = true;
     this.showStudentTable = false;
     this.showAddStudent = false;    
   }
 
   closeViewStudent() {
-    this.showViewStudent = !this.showViewStudent;
+    this.showViewStudent = false;
     this.showAddStudent = false;
     this.showStudentTable = true;
-  }  
+  }
 }

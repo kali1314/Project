@@ -1,13 +1,13 @@
+import { NgIf } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-student',
-  imports: [RouterLink, FormsModule, CommonModule],
+  imports: [RouterLink, FormsModule, ReactiveFormsModule, NgIf],
   templateUrl: './student.html',
   styleUrls: ['./student.css'] 
 })
@@ -32,7 +32,7 @@ export class Student implements OnInit {
   totalItems = 0;
   totalPages = 1;
 
-  students: any = { name: '', email: '', department: '' };
+  studentForm: FormGroup;
   selectedStudent: any = { name: '', email: '', department: '' };
   studentList: any[] = [];
 
@@ -48,6 +48,14 @@ export class Student implements OnInit {
 
   ngOnInit(): void {
     this.fetchStudents();
+  }
+
+  constructor() {
+    this.studentForm = new FormGroup({
+      name: new FormControl('', Validators.required),
+      email: new FormControl('', [Validators.required, Validators.email]),
+      department: new FormControl('', Validators.required)
+    });
   }
 
   onLogOut() {
@@ -69,7 +77,7 @@ export class Student implements OnInit {
   }
 
   resetForm() {
-    this.students = { name: '', email: '', department: '' };
+    this.studentForm.reset();
   }
 
   // Server-side sorting
@@ -141,14 +149,14 @@ export class Student implements OnInit {
   }
 
   onSubmit() {
-    if (!this.students.name || !this.students.email || !this.students.department) {
+    if (this.studentForm.invalid) {
       this.toastr.warning("Please fill all fields before submitting.", "Warning");
       return;
     }
 
     if (this.isEditMode && this.editIndex >= 0) {
       const studentId = this.studentList[this.editIndex].id;
-      this.http.put(`${this.apiUrl}/${studentId}`, this.students).subscribe({
+      this.http.put(`${this.apiUrl}/${studentId}`, this.studentForm.value).subscribe({
         next: () => {
           this.toastr.success("Student Updated Successfully.", "Success");
           this.fetchStudents();
@@ -163,7 +171,7 @@ export class Student implements OnInit {
         }
       });
     } else {
-      this.http.post(this.apiUrl, this.students).subscribe({
+      this.http.post(this.apiUrl, this.studentForm.value).subscribe({
         next: () => {
           this.toastr.success("Added new student successfully!!!", "Success");
           this.fetchStudents();
@@ -181,7 +189,13 @@ export class Student implements OnInit {
   onEdit(student: any, index: number) {
     this.isEditMode = true;
     this.editIndex = index;
-    this.students = { ...student };
+
+    this.studentForm.patchValue({
+      name: student.name,
+      email: student.email,
+      department: student.department
+    });
+
     this.showAddStudent = true;
     this.showStudentTable = false;
     this.showViewStudent = false;

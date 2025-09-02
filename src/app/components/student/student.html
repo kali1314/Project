@@ -29,17 +29,17 @@
   <div class="form-wrapper">
     <div class="form-container">
       <h2>{{ isEditMode ? 'Edit Student Information' : 'Add Student Information' }}</h2>
-      <form>
+      <form [formGroup]="studentForm" (ngSubmit)="onSubmit()">
         <div class="form-group">
           <label for="studentName">Full Name</label>
           <input
             type="text"
             id="studentName"
-            [(ngModel)]="students.name"
+            formControlName="name"
             name="name"
             placeholder="Enter student name"
-            required
           />
+          <small *ngIf="studentForm.get('name')?.invalid && studentForm.get('name')?.touched" style="color: red">Name is required</small>
         </div>
 
         <div class="form-group">
@@ -47,11 +47,15 @@
           <input
             type="email"
             id="studentEmail"
-            [(ngModel)]="students.email"
+            formControlName="email"
             name="email"
             placeholder="example@mail.com"
-            required
           />
+
+          <small *ngIf="studentForm.get('email')?.invalid && studentForm.get('email')?.touched" style="color: red">
+            Email is required & must be valid
+          </small>
+
         </div>
 
         <div class="form-group">
@@ -59,20 +63,28 @@
           <input
             type="text"
             id="studentDepartment"
-            [(ngModel)]="students.department"
+            formControlName="department"
             name="department"
             placeholder="Enter department"
-            required
           />
+
+          <small *ngIf="studentForm.get('department')?.invalid && studentForm.get('department')?.touched" style="color: red">
+            Department is required
+          </small>
+
         </div>
 
-        <button type="submit" class="btn" (click)="onSubmit()">
+        <button type="submit" class="btn" [disabled]="studentForm.invalid">
           {{ isEditMode ? 'Update Student' : 'Save Student' }}
         </button>
+
       </form>
+
     </div>
   </div>
-  } @if (showViewStudent) {
+  } 
+  
+  @if (showViewStudent) {
   <div class="form-wrapper">
     <div class="form-container">
       <h2>Student Details</h2>

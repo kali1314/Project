@@ -116,6 +116,14 @@
   background-color: #218838;
 }
 
+.body .btn:disabled {
+  cursor: not-allowed;
+}
+
+.body .btn:disabled:hover {
+  background-color: #28a745;
+}
+
 .body .view {
   background-color: #007bff;
 }
