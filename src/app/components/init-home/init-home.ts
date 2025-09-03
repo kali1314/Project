@@ -1,21 +1,12 @@
 import { Component, inject } from '@angular/core';
-import { Router} from '@angular/router';
+import { NavBar } from "../shared/nav-bar/nav-bar";
 
 @Component({
   selector: 'app-init-home',
-  imports: [],
+  imports: [NavBar],
   templateUrl: './init-home.html',
   styleUrl: './init-home.css'
 })
 export class InitHome {
 
-  router = inject(Router);
-  
-  onLogIn() {
-    this.router.navigate(['/log-in']);
-  }
-
-  onSignUp() {
-    this.router.navigate(['/sign-up']);
-  }
 }

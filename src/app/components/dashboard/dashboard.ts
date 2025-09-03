@@ -1,17 +1,12 @@
-import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { Router } from '@angular/router';
+import { Component } from '@angular/core';
+import { NavBar } from "../shared/nav-bar/nav-bar";
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink],
+  imports: [ NavBar],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
 export class Dashboard {
-  router = inject(Router);
 
-  onLogOut() {
-    this.router.navigate(['/']);
-  }
 }

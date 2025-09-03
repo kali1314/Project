@@ -1,0 +1,23 @@
+<nav class="navbar">
+
+  <div class="nav-left">
+    <h2>Teacher Student Management System</h2>
+  </div>
+
+  <div class="nav-right">
+
+    <ng-container *ngIf="page === 'initial_home'">
+      <button class="btn login-btn" (click)="onLogIn()">Log In</button>
+      <button class="btn signup-btn" (click)="onSignUp()">Sign Up</button>
+    </ng-container>
+    
+    <ng-container *ngIf="page === 'home'">
+      <button class="btn teacher-btn" routerLink="/teacher">Teacher</button>
+      <button class="btn student-btn" routerLink="/student">Student</button>
+      <button class="btn logout-btn" (click)="onLogOut()">Log Out</button>
+    </ng-container>
+
+  </div>
+</nav>
+
+
