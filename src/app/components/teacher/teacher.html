@@ -1,6 +1,7 @@
 <app-nav-bar page="home"></app-nav-bar>
 
 <div class="body">
+
   <h1>Teacher Panel</h1>
 
   <button class="btn add" (click)="toggleAddStudent()">Add New Teacher</button>
@@ -16,6 +17,7 @@
         (input)="currentPage=1; fetchStudents()"/>
     </div>
   } 
+
   @if (showAddStudent) {
   <div class="form-wrapper">
     <div class="form-container">
@@ -28,7 +30,7 @@
             id="studentName"
             formControlName="name"
             name="name"
-            placeholder="Enter student name"
+            placeholder="Enter teacher name"
           />
           <small *ngIf="studentForm.get('name')?.invalid && studentForm.get('name')?.touched" style="color: red">Name is required</small>
         </div>
@@ -189,7 +191,7 @@
 <div class="modal-overlay" (click)="closeDeleteModal()">
   <div class="modal-content">
     <div class="modal-body">
-      <p>Are you sure you want to delete this student?</p>
+      <p>Are you sure you want to delete this teacher?</p>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" (click)="closeDeleteModal()">Cancel</button>

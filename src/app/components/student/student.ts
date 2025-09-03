@@ -14,8 +14,6 @@ import { NavBar } from "../shared/nav-bar/nav-bar";
 })
 export class Student implements OnInit {
 
-  home: string = "3_button";
-
   showAddStudent = false;
   showStudentTable = true;
   showViewStudent = false;
