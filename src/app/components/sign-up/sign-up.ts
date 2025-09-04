@@ -1,10 +1,10 @@
 import { NgIf } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { ApiService } from '../../services/api-service';
 
 @Component({
   selector: 'app-sign-up',
@@ -19,22 +19,18 @@ export class SignUp {
     password: new FormControl('', Validators.required)
   });
 
-  http = inject(HttpClient);
+  authService = inject(ApiService);
   router = inject(Router);
   toastr = inject(ToastrService);
 
-
-  apiUrl: string = "https://my-json-api-i00y.onrender.com/users";
-
-
   onSignUp() {
-    this.http.get<any[]>(this.apiUrl).subscribe({next: (user) => {
+    this.authService.getUsers().subscribe({next: (user) => {
       const isUserFound = user.find((m: any) => m.emailId === this.signUpForm.value.emailId);
       if (isUserFound) {
         this.toastr.warning("Email Id already registered, please log in.", "Warning");
       }
       else {
-        this.http.post(this.apiUrl, this.signUpForm.value).subscribe({next: () => {
+        this.authService.signUp(this.signUpForm.value).subscribe({next: () => {
           this.toastr.success("Registration Successful", "Success");
           this.router.navigate(['/log-in']);
         }, error: (err) => {

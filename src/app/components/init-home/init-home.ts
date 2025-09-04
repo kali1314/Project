@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { NavBar } from "../shared/nav-bar/nav-bar";
+import { NavBar } from "../../shared/nav-bar/nav-bar";
 
 @Component({
   selector: 'app-init-home',

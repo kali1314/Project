@@ -1,10 +1,10 @@
 import { NgIf } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { NavBar } from "../shared/nav-bar/nav-bar";
+import { NavBar } from "../../shared/nav-bar/nav-bar";
+import { Router } from '@angular/router';
+import { ApiService } from '../../services/api-service';
 
 @Component({
   selector: 'app-teacher',
@@ -41,11 +41,9 @@ export class Teacher implements OnInit{
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
 
+  teacherService = inject(ApiService)
   router = inject(Router);
-  http = inject(HttpClient);
   toastr = inject(ToastrService);
-
-  apiUrl: string = "https://my-json-api-i00y.onrender.com/teachers";
 
   ngOnInit(): void {
     this.fetchStudents();
@@ -110,7 +108,7 @@ export class Teacher implements OnInit{
       params.q = this.searchText.trim(); 
     }
 
-    this.http.get<any[]>(this.apiUrl, { observe: 'response', params }).subscribe({
+    this.teacherService.getTeacher(params).subscribe({
       next: (response) => {
         this.studentList = response.body || [];
         const totalItemsHeader = response.headers.get('X-Total-Count');
@@ -157,7 +155,7 @@ export class Teacher implements OnInit{
 
     if (this.isEditMode && this.editIndex >= 0) {
       const studentId = this.studentList[this.editIndex].id;
-      this.http.put(`${this.apiUrl}/${studentId}`, this.studentForm.value).subscribe({
+      this.teacherService.updateTeacher(studentId, this.studentForm.value).subscribe({
         next: () => {
           this.toastr.success("Student Updated Successfully.", "Success");
           this.fetchStudents();
@@ -172,7 +170,7 @@ export class Teacher implements OnInit{
         }
       });
     } else {
-      this.http.post(this.apiUrl, this.studentForm.value).subscribe({
+        this.teacherService.addTeacher(this.studentForm.value).subscribe({
         next: () => {
           this.toastr.success("Added new student successfully!!!", "Success");
           this.fetchStudents();
@@ -210,7 +208,7 @@ export class Teacher implements OnInit{
 
   confirmDelete() {
     const studentId = this.studentList[this.deleteIndex].id;
-    this.http.delete(`${this.apiUrl}/${studentId}`).subscribe({
+    this.teacherService.deleteTeacher(studentId).subscribe({
       next: () => {
         this.toastr.success("Student deleted successfully!!!", "Success");
         if (this.studentList.length === 1 && this.currentPage > 1) this.currentPage--;

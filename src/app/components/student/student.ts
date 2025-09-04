@@ -1,10 +1,11 @@
 import { NgIf } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { NavBar } from "../shared/nav-bar/nav-bar";
+import { NavBar } from "../../shared/nav-bar/nav-bar";
+import { ApiService } from '../../services/api-service';
+
 
 @Component({
   selector: 'app-student',
@@ -12,6 +13,7 @@ import { NavBar } from "../shared/nav-bar/nav-bar";
   templateUrl: './student.html',
   styleUrls: ['./student.css'] 
 })
+
 export class Student implements OnInit {
 
   showAddStudent = false;
@@ -41,11 +43,9 @@ export class Student implements OnInit {
   sortColumn: string = '';
   sortDirection: 'asc' | 'desc' = 'asc';
 
+  studentService = inject(ApiService)
   router = inject(Router);
-  http = inject(HttpClient);
   toastr = inject(ToastrService);
-
-  apiUrl: string = "https://my-json-api-i00y.onrender.com/students";
 
   ngOnInit(): void {
     this.fetchStudents();
@@ -110,7 +110,7 @@ export class Student implements OnInit {
       params.q = this.searchText.trim(); 
     }
 
-    this.http.get<any[]>(this.apiUrl, { observe: 'response', params }).subscribe({
+    this.studentService.getStudent(params).subscribe({
       next: (response) => {
         this.studentList = response.body || [];
         const totalItemsHeader = response.headers.get('X-Total-Count');
@@ -157,7 +157,7 @@ export class Student implements OnInit {
 
     if (this.isEditMode && this.editIndex >= 0) {
       const studentId = this.studentList[this.editIndex].id;
-      this.http.put(`${this.apiUrl}/${studentId}`, this.studentForm.value).subscribe({
+      this.studentService.updateStudent(studentId, this.studentForm.value).subscribe({
         next: () => {
           this.toastr.success("Student Updated Successfully.", "Success");
           this.fetchStudents();
@@ -172,7 +172,7 @@ export class Student implements OnInit {
         }
       });
     } else {
-      this.http.post(this.apiUrl, this.studentForm.value).subscribe({
+        this.studentService.addStudent(this.studentForm.value).subscribe({
         next: () => {
           this.toastr.success("Added new student successfully!!!", "Success");
           this.fetchStudents();
@@ -210,7 +210,7 @@ export class Student implements OnInit {
 
   confirmDelete() {
     const studentId = this.studentList[this.deleteIndex].id;
-    this.http.delete(`${this.apiUrl}/${studentId}`).subscribe({
+    this.studentService.deleteStudent(studentId).subscribe({
       next: () => {
         this.toastr.success("Student deleted successfully!!!", "Success");
         if (this.studentList.length === 1 && this.currentPage > 1) this.currentPage--;

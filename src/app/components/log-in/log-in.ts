@@ -1,10 +1,10 @@
 import { NgIf } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { Component, inject } from '@angular/core';
 import {  FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { ApiService } from '../../services/api-service';
 
 @Component({
   selector: 'app-log-in',
@@ -14,7 +14,7 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class LogIn {
 
-  http = inject(HttpClient);
+  authService = inject(ApiService);
   router = inject(Router);
   toastr = inject(ToastrService);
 
@@ -23,10 +23,8 @@ export class LogIn {
     password: new FormControl('', Validators.required)
   });
 
-  apiUrl: string = "https://my-json-api-i00y.onrender.com/users";
-
   onLogIn() {
-    this.http.get<any[]>(this.apiUrl).subscribe({next: (users) => {
+    this.authService.getUsers().subscribe({next: (users) => {
       if (!users || users.length === 0) {
         this.toastr.warning("No user found!!! Please Sign Up", "warning");
         this.router.navigate(['/sign-up']);
